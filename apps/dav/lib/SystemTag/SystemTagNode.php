@@ -126,6 +126,11 @@ class SystemTagNode implements \Sabre\DAV\INode {
 
 			// only admin is able to change permissions, regular users can only rename
 			if (!$this->isAdmin) {
+				//unEditable tags are not allowed to rename
+				$getConfigVal = \OC::$server->getConfig()->getAppValue('systemtags_management', $this->tag->getName(), '');
+				if ($getConfigVal !== '') {
+					throw new Forbidden('No permission to update permissions for tag ' . $this->tag->getId());
+				}
 				// only renaming is allowed for regular users
 				if ($userVisible !== $this->tag->isUserVisible()
 					|| $userAssignable !== $this->tag->isUserAssignable()

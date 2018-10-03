@@ -67,6 +67,7 @@ interface ISystemTagManager {
 	 * @param string $tagName tag name
 	 * @param bool $userVisible whether the tag is visible by users
 	 * @param bool $userAssignable whether the tag is assignable by users
+	 * @param bool $userUneditable whether the tag is editable by users
 	 *
 	 * @return \OCP\SystemTag\ISystemTag system tag
 	 *
@@ -74,7 +75,7 @@ interface ISystemTagManager {
 	 *
 	 * @since 9.0.0
 	 */
-	public function createTag($tagName, $userVisible, $userAssignable);
+	public function createTag($tagName, $userVisible, $userAssignable, $userUneditable);
 
 	/**
 	 * Returns all known tags, optionally filtered by visibility.

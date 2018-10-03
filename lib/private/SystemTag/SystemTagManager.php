@@ -187,16 +187,23 @@ class SystemTagManager implements ISystemTagManager {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function createTag($tagName, $userVisible, $userAssignable) {
+	public function createTag($tagName, $userVisible, $userAssignable, $userUneditable) {
 		$userVisible = (int)$userVisible;
 		$userAssignable = (int)$userAssignable;
+		$userUneditable = (int)$userUneditable;
+
+		if ($userUneditable === 1) {
+			$ediable = 0;
+		} else {
+			$ediable = $userAssignable;
+		}
 
 		$query = $this->connection->getQueryBuilder();
 		$query->insert(self::TAG_TABLE)
 			->values([
 				'name' => $query->createNamedParameter($tagName),
 				'visibility' => $query->createNamedParameter($userVisible),
-				'editable' => $query->createNamedParameter($userAssignable),
+				'editable' => $query->createNamedParameter($ediable),
 			]);
 
 		try {

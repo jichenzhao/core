@@ -172,6 +172,7 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 		$tagName = $data['name'];
 		$userVisible = true;
 		$userAssignable = true;
+		$userUneditable = false;
 
 		if (isset($data['userVisible'])) {
 			$userVisible = (bool)$data['userVisible'];
@@ -179,6 +180,10 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 
 		if (isset($data['userAssignable'])) {
 			$userAssignable = (bool)$data['userAssignable'];
+		}
+
+		if (isset($data['userUneditable'])) {
+			$userUneditable = (bool)$data['userUneditable'];
 		}
 
 		$groups = [];
@@ -196,9 +201,16 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 		}
 
 		try {
-			$tag = $this->tagManager->createTag($tagName, $userVisible, $userAssignable);
+			$tag = $this->tagManager->createTag($tagName, $userVisible, $userAssignable, $userUneditable);
 			if (!empty($groups)) {
 				$this->tagManager->setTagGroups($tag, $groups);
+			}
+
+			if (isset($data['userUneditable'])) {
+				$user = $this->userSession->getUser();
+				if ($user !== null) {
+					\OC::$server->getConfig()->setAppValue('systemtags_management', $tagName, 'unEditable');
+				}
 			}
 			return $tag;
 		} catch (TagAlreadyExistsException $e) {
