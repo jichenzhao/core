@@ -148,7 +148,8 @@ class SystemTagManager implements ISystemTagManager {
 		$query
 			->addOrderBy('name', 'ASC')
 			->addOrderBy('visibility', 'ASC')
-			->addOrderBy('editable', 'ASC');
+			->addOrderBy('editable', 'ASC')
+			->addOrderBy('assignable', 'ASC');
 
 		$result = $query->execute();
 		while ($row = $result->fetch()) {
@@ -193,9 +194,10 @@ class SystemTagManager implements ISystemTagManager {
 		$userUneditable = (int)$userUneditable;
 
 		if ($userUneditable === 1) {
-			$ediable = 0;
+			$editable = 0;
+			$userAssignable = 1;
 		} else {
-			$ediable = $userAssignable;
+			$editable = $userAssignable;
 		}
 
 		$query = $this->connection->getQueryBuilder();
@@ -203,7 +205,8 @@ class SystemTagManager implements ISystemTagManager {
 			->values([
 				'name' => $query->createNamedParameter($tagName),
 				'visibility' => $query->createNamedParameter($userVisible),
-				'editable' => $query->createNamedParameter($ediable),
+				'editable' => $query->createNamedParameter($editable),
+				'assignable' => $query->createNamedParameter($userAssignable)
 			]);
 
 		try {
@@ -222,6 +225,7 @@ class SystemTagManager implements ISystemTagManager {
 			(int)$tagId,
 			$tagName,
 			(bool)$userVisible,
+			(bool)$editable,
 			(bool)$userAssignable
 		);
 
@@ -235,7 +239,7 @@ class SystemTagManager implements ISystemTagManager {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateTag($tagId, $tagName, $userVisible, $userAssignable) {
+	public function updateTag($tagId, $tagName, $userVisible, $userEditable, $userAssignable) {
 		$userVisible = (int)$userVisible;
 		$userAssignable = (int)$userAssignable;
 
@@ -252,6 +256,7 @@ class SystemTagManager implements ISystemTagManager {
 			(int) $tagId,
 			$tagName,
 			(bool) $userVisible,
+			(bool) $userEditable,
 			(bool) $userAssignable
 		);
 
@@ -260,10 +265,12 @@ class SystemTagManager implements ISystemTagManager {
 			->set('name', $query->createParameter('name'))
 			->set('visibility', $query->createParameter('visibility'))
 			->set('editable', $query->createParameter('editable'))
+			->set('assignable', $query->createNamedParameter('assignable'))
 			->where($query->expr()->eq('id', $query->createParameter('tagid')))
 			->setParameter('name', $tagName)
 			->setParameter('visibility', $userVisible)
 			->setParameter('editable', $userAssignable)
+			->setParameter('assignable', $userEditable)
 			->setParameter('tagid', $tagId);
 
 		try {
@@ -381,7 +388,7 @@ class SystemTagManager implements ISystemTagManager {
 	}
 
 	private function createSystemTagFromRow($row) {
-		return new SystemTag((int)$row['id'], $row['name'], (bool)$row['visibility'], (bool)$row['editable']);
+		return new SystemTag((int)$row['id'], $row['name'], (bool)$row['visibility'], (bool)$row['editable'], (bool)$row['assignable']);
 	}
 
 	/**

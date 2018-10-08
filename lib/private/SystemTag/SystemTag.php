@@ -44,6 +44,11 @@ class SystemTag implements ISystemTag {
 	/**
 	 * @var bool
 	 */
+	private $userEditable;
+
+	/**
+	 * @var bool
+	 */
 	private $userAssignable;
 
 	/**
@@ -52,12 +57,14 @@ class SystemTag implements ISystemTag {
 	 * @param string $id tag id
 	 * @param string $name tag name
 	 * @param bool $userVisible whether the tag is user visible
+	 * @param bool $editable whether the tag is user assignable
 	 * @param bool $userAssignable whether the tag is user assignable
 	 */
-	public function __construct($id, $name, $userVisible, $userAssignable) {
+	public function __construct($id, $name, $userVisible, $editable, $userAssignable) {
 		$this->id = $id;
 		$this->name = $name;
 		$this->userVisible = $userVisible;
+		$this->userEditable = $editable;
 		$this->userAssignable = $userAssignable;
 	}
 
@@ -87,5 +94,12 @@ class SystemTag implements ISystemTag {
 	 */
 	public function isUserAssignable() {
 		return $this->userAssignable;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isUserEditable() {
+		return$this->userEditable;
 	}
 }

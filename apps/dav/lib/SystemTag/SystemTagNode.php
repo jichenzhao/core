@@ -110,12 +110,13 @@ class SystemTagNode implements \Sabre\DAV\INode {
 	 *
 	 * @param string $name new tag name
 	 * @param bool $userVisible user visible
+	 * @param bool $userEditable user editable
 	 * @param bool $userAssignable user assignable
 	 * @throws NotFound whenever the given tag id does not exist
 	 * @throws Forbidden whenever there is no permission to update said tag
 	 * @throws Conflict whenever a tag already exists with the given attributes
 	 */
-	public function update($name, $userVisible, $userAssignable) {
+	public function update($name, $userVisible, $userEditable, $userAssignable) {
 		try {
 			if (!$this->tagManager->canUserSeeTag($this->tag, $this->user)) {
 				throw new NotFound('Tag with id ' . $this->tag->getId() . ' does not exist');
@@ -139,7 +140,7 @@ class SystemTagNode implements \Sabre\DAV\INode {
 				}
 			}
 
-			$this->tagManager->updateTag($this->tag->getId(), $name, $userVisible, $userAssignable);
+			$this->tagManager->updateTag($this->tag->getId(), $name, $userVisible, $userEditable, $userAssignable);
 		} catch (TagNotFoundException $e) {
 			throw new NotFound('Tag with id ' . $this->tag->getId() . ' does not exist');
 		} catch (TagAlreadyExistsException $e) {

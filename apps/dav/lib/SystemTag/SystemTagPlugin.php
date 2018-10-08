@@ -50,6 +50,7 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 	const ID_PROPERTYNAME = '{http://owncloud.org/ns}id';
 	const DISPLAYNAME_PROPERTYNAME = '{http://owncloud.org/ns}display-name';
 	const USERVISIBLE_PROPERTYNAME = '{http://owncloud.org/ns}user-visible';
+	const USEREDITABLE_PROPERTYNAME = '{http://owncloud.org/ns}user-editable';
 	const USERASSIGNABLE_PROPERTYNAME = '{http://owncloud.org/ns}user-assignable';
 	const GROUPS_PROPERTYNAME = '{http://owncloud.org/ns}groups';
 	const CANASSIGN_PROPERTYNAME = '{http://owncloud.org/ns}can-assign';
@@ -206,12 +207,12 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 				$this->tagManager->setTagGroups($tag, $groups);
 			}
 
-			if (isset($data['userUneditable'])) {
+			/*if (isset($data['userUneditable'])) {
 				$user = $this->userSession->getUser();
 				if ($user !== null) {
 					\OC::$server->getConfig()->setAppValue('systemtags_management', $tagName, 'unEditable');
 				}
-			}
+			}*/
 			return $tag;
 		} catch (TagAlreadyExistsException $e) {
 			throw new Conflict('Tag already exists', 0, $e);
@@ -244,6 +245,11 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 			return $node->getSystemTag()->isUserVisible() ? 'true' : 'false';
 		});
 
+		$propFind->handle(self::USEREDITABLE_PROPERTYNAME, function () use ($node) {
+			// this is the tag's inherent property "is user editable"
+			return $node->getSystemTag()->isUserEditable() ? 'true' : 'false';
+		});
+
 		$propFind->handle(self::USERASSIGNABLE_PROPERTYNAME, function () use ($node) {
 			// this is the tag's inherent property "is user assignable"
 			return $node->getSystemTag()->isUserAssignable() ? 'true' : 'false';
@@ -261,7 +267,12 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 			}
 			$groups = [];
 			// no need to retrieve groups for namespaces that don't qualify
-			if ($node->getSystemTag()->isUserVisible() && !$node->getSystemTag()->isUserAssignable()) {
+			$restrictedTagCondition = $node->getSystemTag()->isUserVisible() &&
+				(!$node->getSystemTag()->isUserAssignable());
+			$uneditableTagCondition = $node->getSystemTag()->isUserVisible() &&
+				$node->getSystemTag()->isUserAssignable() &&
+				(!$node->getSystemTag()->isUserEditable());
+			if ($restrictedTagCondition || $uneditableTagCondition) {
 				$groups = $this->tagManager->getTagGroups($node->getSystemTag());
 			}
 			return \implode('|', $groups);
@@ -285,12 +296,14 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 		$propPatch->handle([
 			self::DISPLAYNAME_PROPERTYNAME,
 			self::USERVISIBLE_PROPERTYNAME,
+			self::USEREDITABLE_PROPERTYNAME,
 			self::USERASSIGNABLE_PROPERTYNAME,
 			self::GROUPS_PROPERTYNAME,
 		], function ($props) use ($node) {
 			$tag = $node->getSystemTag();
 			$name = $tag->getName();
 			$userVisible = $tag->isUserVisible();
+			$userEditable = $tag->isUserEditable();
 			$userAssignable = $tag->isUserAssignable();
 
 			$updateTag = false;
@@ -303,6 +316,12 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 			if (isset($props[self::USERVISIBLE_PROPERTYNAME])) {
 				$propValue = $props[self::USERVISIBLE_PROPERTYNAME];
 				$userVisible = ($propValue !== 'false' && $propValue !== '0');
+				$updateTag = true;
+			}
+
+			if (isset($props[self::USEREDITABLE_PROPERTYNAME])) {
+				$propValue = $props[self::USEREDITABLE_PROPERTYNAME];
+				$userEditable = ($propValue !== 'false' && $propValue !== '0');
 				$updateTag = true;
 			}
 
@@ -324,7 +343,7 @@ class SystemTagPlugin extends \Sabre\DAV\ServerPlugin {
 			}
 
 			if ($updateTag) {
-				$node->update($name, $userVisible, $userAssignable);
+				$node->update($name, $userVisible, $userEditable, $userAssignable);
 			}
 
 			return true;

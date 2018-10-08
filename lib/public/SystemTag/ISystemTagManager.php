@@ -95,6 +95,7 @@ interface ISystemTagManager {
 	 * @param string $tagId tag id
 	 * @param string $newName the new tag name
 	 * @param bool $userVisible whether the tag is visible by users
+	 * @param bool $userEditable whether the tag is assignable by users
 	 * @param bool $userAssignable whether the tag is assignable by users
 	 *
 	 * @throws \OCP\SystemTag\TagNotFoundException if tag with the given id does not exist
@@ -103,7 +104,7 @@ interface ISystemTagManager {
 	 *
 	 * @since 9.0.0
 	 */
-	public function updateTag($tagId, $newName, $userVisible, $userAssignable);
+	public function updateTag($tagId, $newName, $userVisible, $userEditable, $userAssignable);
 
 	/**
 	 * Delete the given tags from the database and all their relationships.

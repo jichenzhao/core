@@ -288,6 +288,14 @@
 			if (!this._resultTemplate) {
 				this._resultTemplate = Handlebars.compile(RESULT_TEMPLATE);
 			}
+
+			//Do not show the edit if the tag is uneditable
+			var uneditableTag = data.userVisible === true && data.userAssignable === true && data.userEditable === false;
+			if (uneditableTag === true) {
+				this._allowActions = false;
+			} else {
+				this._allowActions = true;
+			}
 			return this._resultTemplate(_.extend({
 				renameTooltip: t('core', 'Rename'),
 				allowActions: this._allowActions,
